@@ -2,18 +2,29 @@
 * BinMan Implimentation. See BinMan.h or README.md for more useage info
 *
 * ADBeta
-* 18 Aug 2022
+* 19 Aug 2022
 *******************************************************************************/
 
 #include "BinMan.h"
 
-#include <limits>
+#include <limits>     //allows max stream size value
+#include <iomanip>    //For printing hex values with leading 0
 #include <iostream>
 #include <fstream>
 
 /** Constructor and configuration *********************************************/
 BinMan::BinMan(const char* inputfn) {
 	this->m_filename = inputfn;
+}
+
+BinMan::~BinMan() {
+	std::cout << "deconstruct begin" << std::endl;
+	//Clear the byte array. flush should always be run, this is a safety backup
+	if(m_fBuffer != NULL) {
+		delete [] m_fBuffer;
+		m_fBuffer = NULL;	
+	}
+	//Clear the selBuffer
 }
 
 void BinMan::read() {
@@ -30,7 +41,7 @@ void BinMan::read() {
 	m_file.ignore(std::numeric_limits<std::streamsize>::max());
 	//Get the size of the input file
 	std::streamsize inBytes = m_file.gcount();
-		
+	
 	//If the file is too large, error and exit
 	if(inBytes > _maxInputBytes) {
 		errMsg("read", "File " + (std::string)m_filename, "is too large.");
@@ -56,6 +67,9 @@ void BinMan::read() {
 		++index;
 	}
 	
+	//Set the buffer size variable
+	m_fBufSize = inBytes;
+	
 	//If verbose, print the size and status
 	if(Verbose) {
 		infoMsg("BinMan: Read " + (std::string)m_filename + " Success.\t",
@@ -65,6 +79,47 @@ void BinMan::read() {
 	//Close the file
 	this->close();
 }
+
+void BinMan::printChunk(const std::streamsize startByte,
+                        const std::streamsize endByte) {	
+	//If end is higher than the bytes in file, warn then exit function.
+	if(endByte > m_fBufSize) {
+		warnMsg("printChunk: end byte is larger than the size of the file");
+		return;
+	}
+		
+	int col = 0; //Current byte position across the 'screen'
+	
+	//Start index at -start- and go to -end-
+	std::streamsize index = startByte;
+	while(index < endByte) { 
+		//If 20 bytes have been printed, move to next line
+		if(col == 20) {
+			std::cout << std::endl; 
+			col = 0;
+		}
+		
+		//TODO Add byte offset to beginning of line?
+		//Print each byte as a hex value, followed by a space
+		pHex(m_fBuffer[index]);
+		std::cout << " ";
+		
+		//Next position on screen
+		++col;
+		//Next byte index
+		++index;	
+	}
+	
+	//Newline for clean-ness - Use std::dec to revert back from hex mode
+	std::cout << std::dec << std::endl;
+}
+
+void BinMan::printAll() {
+	printChunk(0x00, m_fBufSize);
+}
+
+//TODO combine both printChunk and printAll functionality into one block
+
 
 void BinMan::close() {
 	//Only perform action if the file is open
@@ -80,7 +135,17 @@ void BinMan::close() {
 
 void BinMan::flush() {
 	//Clear the byte array
-	delete [] m_fBuffer;
+	if(m_fBuffer != NULL) {
+		delete [] m_fBuffer;
+		m_fBuffer = NULL;	
+	}
+}
+
+/** Helper Functions **********************************************************/
+//Inlining this didn't help speed. oh well
+void BinMan::pHex(const unsigned char byte) {
+	std::cout << std::uppercase << std::setfill('0') << std::setw(2) 
+		      << std::hex << (int)byte;
 }
 
 void BinMan::cleanExit(int exitcode) {
