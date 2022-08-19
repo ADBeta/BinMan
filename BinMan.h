@@ -1,7 +1,7 @@
 /*******************************************************************************
 * Binary Manager
-* Open, Modify, Read, Manipulate and Write binary files.
-* 
+* Open, Modify, Read, Manipulate and Write binary files. 
+*
 * Usage:
 *
 *
@@ -45,6 +45,11 @@ class BinMan {
 	void close();
 	//Flush the buffer array and close the file
 	void flush();
+	
+	//Overwrite the input file
+	int overwrite();
+	//Write the file to another BinMan file
+	int writeTo(BinMan &);
 	
 	/** Helper functions ******************************************************/
 	//Print a single hex char to cout, in uppercase and 2 width format

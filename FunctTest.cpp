@@ -14,6 +14,7 @@
 #include <iostream>
 
 BinMan binFile("TestFiles/Example.jpg");
+BinMan outFile("TestFiles/writeout.jpg");
 
 int main() {
 	
@@ -23,6 +24,9 @@ int main() {
 	
 	//binFile.printAll();
 	binFile.printChunk(0x00, 0xF0);
+
+	//binFile.overwrite();
+	binFile.writeTo(outFile);
 
 	//Must always flush before exit to clear RAM
 	binFile.flush();

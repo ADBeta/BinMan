@@ -141,6 +141,70 @@ void BinMan::flush() {
 	}
 }
 
+int BinMan::overwrite() {
+	//Open file as output, truncate
+	m_file.open(m_filename, std::ios::out | std::ios::trunc | std::ios::binary);
+	
+	//Make sure file is open and exists
+	if(m_file.is_open() == 0) { 
+		warnMsg("overwrite: Could not create file", (std::string)m_filename);
+		return EXIT_FAILURE;
+	}
+	
+	//Write RAM to file
+	std::streamsize outByte = 0;
+	while(outByte < m_fBufSize) {
+		//Put the byte into the stream file
+		m_file.put(m_fBuffer[outByte]);
+	
+		++outByte;
+	}
+	
+	//Close file and clear flags
+	close();
+	
+	//If verbosity is enabled, print a nice message
+	if(Verbose == true) {
+		infoMsg("BinMan: Succcessfully wrote " + std::to_string(outByte),
+		        " bytes to " + (std::string)m_filename);
+	}
+	
+	return EXIT_SUCCESS;
+}
+
+int BinMan::writeTo(BinMan &target) {
+	//Open file as output, truncate
+	target.m_file.open(target.m_filename, std::ios::out | std::ios::trunc |
+	                                      std::ios::binary);
+	
+	//Make sure file is open and exists
+	if(target.m_file.is_open() == 0) { 
+		warnMsg("writeTo: Could not create file ", target.m_filename);
+		
+		return EXIT_FAILURE;
+	}
+	
+	//Write parent object RAM to target file
+	std::streamsize outByte = 0;
+	while(outByte < this->m_fBufSize) {
+		//Put the byte into the stream file
+		target.m_file.put(this->m_fBuffer[outByte]);
+	
+		++outByte;
+	}
+	
+	//Close file and clear flags
+	target.close();
+	
+	//If verbosity is enabled, print a nice message
+	if(Verbose == true) {
+		infoMsg("BinMan: Succcessfully wrote " + std::to_string(outByte),
+		        " bytes to " + (std::string)target.m_filename);
+	}
+	
+	return EXIT_SUCCESS;
+}
+
 /** Helper Functions **********************************************************/
 //Inlining this didn't help speed. oh well
 void BinMan::pHex(const unsigned char byte) {
