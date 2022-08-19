@@ -30,6 +30,6 @@ I plan to add:
 
 Written by ADBeta 
 
-##Licence
+## Licence
 
 BinMan is under the GPL (GPL3.0), please see LICENCE for information
